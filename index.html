@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gallery</title>
+  <title>NDu's Gallery</title>
   <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -64,6 +64,20 @@
       color: var(--bg);
     }
     .nav-add svg { pointer-events: none; }
+
+    /* ── NAV COUNT ── */
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .nav-count {
+      font-family: 'Special Elite', cursive;
+      font-size: 0.85rem;
+      letter-spacing: 0.12em;
+      color: rgba(80,87,77,0.6);
+      text-transform: uppercase;
+    }
 
     /* ── MASONRY GRID ── */
     #gallery {
@@ -128,18 +142,32 @@
 
     /* ── EMPTY STATE ── */
     #empty-state {
+      position: fixed;
+      inset: 64px 0 0 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 14px;
-      padding: 100px 20px;
-      color: rgba(80,87,77,0.45);
-      font-size: 1rem;
-      font-style: italic;
-      letter-spacing: 0.02em;
+      gap: 10px;
+      pointer-events: none;
     }
-    #empty-state svg { opacity: 0.3; }
+    #empty-state svg { opacity: 0.28; margin-bottom: 6px; }
+    #empty-state .es-title {
+      font-family: 'Special Elite', cursive;
+      font-size: 1.1rem;
+      font-weight: bold;
+      letter-spacing: 0.04em;
+      color: var(--text);
+      opacity: 0.75;
+    }
+    #empty-state .es-sub {
+      font-family: 'Special Elite', cursive;
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text);
+      opacity: 0.4;
+    }
 
     /* ── MODAL / LIGHTBOX ── */
     #lightbox {
@@ -239,12 +267,15 @@
 <!-- NAV -->
 <nav>
   <span class="nav-logo">Gallery</span>
-  <button class="nav-add" id="add-btn" title="Thêm ảnh">
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <line x1="9" y1="2" x2="9" y2="16"/>
-      <line x1="2" y1="9" x2="16" y2="9"/>
-    </svg>
-  </button>
+  <div class="nav-right">
+    <span class="nav-count" id="nav-count">0 ẢNH</span>
+    <button class="nav-add" id="add-btn" title="Thêm ảnh">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="9" y1="2" x2="9" y2="16"/>
+        <line x1="2" y1="9" x2="16" y2="9"/>
+      </svg>
+    </button>
+  </div>
 </nav>
 
 <!-- HIDDEN FILE INPUT -->
@@ -258,7 +289,8 @@
       <circle cx="17" cy="20" r="3"/>
       <polyline points="6,32 15,22 22,30 29,22 42,34"/>
     </svg>
-    Nhấn dấu + để thêm ảnh đầu tiên
+    <span class="es-title">Bộ sưu tập của bạn trống</span>
+    <span class="es-sub">Nhấn + để thêm ảnh đầu tiên</span>
   </div>
 </div>
 
@@ -308,6 +340,7 @@
   const lbClose     = document.getElementById("lightbox-close");
   const toast       = document.getElementById("toast");
   const dragOverlay = document.getElementById("drag-overlay");
+  const navCount    = document.getElementById("nav-count");
 
   // ── Toast helper ──
   let toastTimer;
@@ -368,12 +401,13 @@
   // ── Real-time sync from Firestore ──
   const q = query(collection(db, COLLECTION), orderBy("createdAt", "desc"));
   onSnapshot(q, (snapshot) => {
-    // Re-render everything cleanly
-    // Remove all existing cards
     gallery.querySelectorAll(".photo-card").forEach(c => c.remove());
 
     const docs = snapshot.docs;
-    if (docs.length === 0) {
+    const count = docs.length;
+    navCount.textContent = count + " ẢNH";
+
+    if (count === 0) {
       emptyState.style.display = "flex";
     } else {
       emptyState.style.display = "none";
